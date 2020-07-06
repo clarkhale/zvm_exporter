@@ -9,19 +9,25 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+type ZVMStats struct {
+	avgProc float64
+}
+
 var (
-	avgProc = prometheus.NewGaugeFunc(
+	zvmStats ZVMStats
+	avgProc  = prometheus.NewGaugeFunc(
 		prometheus.GaugeOpts{
 			Name: "avgproc",
 			Help: "AVGPROC item from vmcp indicate",
 		},
 		func() float64 {
-			return getAvgProc()
+			return zvmStats.avgProc
 		},
 	)
 )
@@ -56,13 +62,27 @@ func getAvgProc() float64 {
 	return retVal
 }
 
+func parseVMCP(stats *ZVMStats) {
+	stats.avgProc = getAvgProc()
+}
+
+func updateLoop() {
+
+	for {
+		parseVMCP(&zvmStats)
+		time.Sleep(10)
+	}
+}
+
 func main() {
 	fmt.Println("Starting z/VM Exporter!")
 
 	path := "/metrics"
-	addr := ":9800"
+	addr := ":9100"
 
 	metricsPath := &path
+
+	go updateLoop()
 
 	prometheus.MustRegister(avgProc)
 
