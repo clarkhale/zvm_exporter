@@ -82,7 +82,7 @@ func main() {
 	metricsPath := flag.String("path", "/metrics", "URL Path for metrics endpoint")
 	addr := flag.String("address", ":9100", "Bind address")
 	pollIntervalPtr := flag.Int("pollInterval", 15, "Interval to poll z/VM")
-	vmcpPath = flag.String("vmcpPath", "/home/chale/zvm_exporter/test_data.sh", "Path to VMCP Utility")
+	vmcpPath = flag.String("vmcpPath", "/usr/sbin/vmcp", "Path to VMCP Utility")
 
 	flag.Parse()
 
