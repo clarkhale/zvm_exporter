@@ -36,7 +36,7 @@ var (
 )
 
 func runVMCP() string {
-	cmd := exec.Command(*vmcpPath + " " + "indicate")
+	cmd := exec.Command(*vmcpPath, "indicate")
 
 	var out bytes.Buffer
 
