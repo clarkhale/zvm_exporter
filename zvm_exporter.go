@@ -15,12 +15,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type ZVMStats struct {
+type zVMStats struct {
 	avgProc float64
 }
 
 var (
-	zvmStats ZVMStats
+	zvmStats zVMStats
 	avgProc  = prometheus.NewGaugeFunc(
 		prometheus.GaugeOpts{
 			Name: "avgproc",
@@ -62,7 +62,7 @@ func getAvgProc() float64 {
 	return retVal
 }
 
-func parseVMCP(stats *ZVMStats) {
+func parseVMCP(stats *zVMStats) {
 	stats.avgProc = getAvgProc()
 }
 
