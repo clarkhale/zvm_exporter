@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,8 +21,10 @@ type zVMStats struct {
 }
 
 var (
-	zvmStats zVMStats
-	avgProc  = prometheus.NewGaugeFunc(
+	pollInterval int
+	vmcpPath     *string
+	zvmStats     zVMStats
+	avgProc      = prometheus.NewGaugeFunc(
 		prometheus.GaugeOpts{
 			Name: "avgproc",
 			Help: "AVGPROC item from vmcp indicate",
@@ -33,7 +36,7 @@ var (
 )
 
 func runVMCP() string {
-	cmd := exec.Command("/home/chale/zvm_exporter/test_data.sh")
+	cmd := exec.Command(*vmcpPath)
 
 	var out bytes.Buffer
 
@@ -70,17 +73,23 @@ func updateLoop() {
 
 	for {
 		parseVMCP(&zvmStats)
-		time.Sleep(10)
+		time.Sleep(time.Duration(pollInterval))
 	}
 }
 
 func main() {
+
+	metricsPath := flag.String("path", "/metrics", "URL Path for metrics endpoint")
+	addr := flag.String("address", ":9100", "Bind address")
+	pollIntervalPtr := flag.Int("pollInterval", 15, "Interval to poll z/VM")
+	vmcpPath = flag.String("vmcpPath", "/home/chale/zvm_exporter/test_data.sh", "Path to VMCP Utility")
+
+	flag.Parse()
+
+	pollInterval = *pollIntervalPtr
+
 	fmt.Println("Starting z/VM Exporter!")
-
-	path := "/metrics"
-	addr := ":9100"
-
-	metricsPath := &path
+	fmt.Println("Listening on " + *addr + *metricsPath)
 
 	go updateLoop()
 
@@ -98,11 +107,11 @@ func main() {
              <head><title>Haproxy Exporter</title></head>
              <body>
              <h1>Haproxy Exporter</h1>
-             <p><a href='` + path + `'>Metrics</a></p>
+             <p><a href='` + *metricsPath + `'>Metrics</a></p>
              </body>
              </html>`))
 	})
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	if err := http.ListenAndServe(*addr, nil); err != nil {
 		fmt.Println("ERROR")
 		os.Exit(1)
 	}
